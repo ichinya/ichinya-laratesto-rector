@@ -42,6 +42,39 @@ final class UpstreamCompositionTest
     }
 
     #[Test]
+    public function sharedTraitDiscoveryRequiresManualMigration(): void
+    {
+        $traits = <<<'PHP'
+            <?php
+            namespace SharedDiscovery;
+            trait NamedTest { public function testProvided(): void {} }
+            trait AnnotatedTest { /** @test */ public function provided(): void {} }
+            trait AttributedTest { #[\PHPUnit\Framework\Attributes\Test] public function provided(): void {} }
+            trait NestedTest { use NamedTest; }
+            PHP;
+        $files = $this->migrate([
+            'Traits.php' => $traits,
+            'Tests.php' => <<<'PHP'
+                <?php
+                namespace SharedDiscovery;
+                final class LaravelProbe extends \Illuminate\Foundation\Testing\TestCase {
+                    use NestedTest, AnnotatedTest, AttributedTest;
+                    public function testLocal(): void {}
+                }
+                final class GenericProbe extends \PHPUnit\Framework\TestCase {
+                    public function testLocal(): void {}
+                }
+                PHP,
+        ]);
+
+        Assert::same($traits, $files['Traits.php'], 'Shared trait discovery must remain byte-identical.');
+        Assert::string($files['Tests.php'])->contains('extends \Illuminate\Foundation\Testing\TestCase');
+        Assert::string($files['Tests.php'])->contains('CLASS_UNSAFE_HIERARCHY');
+        Assert::string($files['Tests.php'])->notContains('extends \PHPUnit\Framework\TestCase');
+        Assert::same(1, substr_count($files['Tests.php'], '#[\Testo\Test]'));
+    }
+
+    #[Test]
     public function userSkipsAndUnconvertedGenericVendorBasesKeepTheirProtection(): void
     {
         $files = $this->migrate([

@@ -11,7 +11,7 @@ use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use Testo\Bridge\Rector\PhpunitToTesto\ExtendsTestCaseToTestoRector;
 
-/** Reuse upstream discovery for generic PHPUnit classes and traits. */
+/** Reuse upstream discovery for generic PHPUnit classes. */
 final class PhpUnitDiscoveryRector extends AbstractRector
 {
     public function __construct(
@@ -26,7 +26,11 @@ final class PhpUnitDiscoveryRector extends AbstractRector
 
     public function getNodeTypes(): array
     {
-        return $this->upstream->getNodeTypes();
+        // Traits can be shared by Laravel and PHPUnit consumers, including
+        // consumers outside the processed paths. Their discovery must stay
+        // unchanged until they are migrated manually, as the Laravel gate
+        // cannot prove an atomic conversion of all their consumers.
+        return [Class_::class];
     }
 
     public function refactor(Node $node): ?Node

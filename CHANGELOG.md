@@ -5,6 +5,8 @@
 - Support Rector 2.7.0 and testo/bridge-rector 0.3.3.
 - Keep Laravel structural conversion separate from upstream generic discovery
   and lifecycle rewrites, preserving user skips and unsafe-hierarchy boundaries.
+- Preserve shared trait test discovery for manual migration, including traits
+  whose consumers are outside the processed paths.
 - Preserve source assertion semantics before upstream typed-head conversions.
 - Update the fixture harness for Rector's container API, imported sets and
   system-error diagnostics.
