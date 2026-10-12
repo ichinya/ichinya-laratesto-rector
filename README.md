@@ -1,7 +1,7 @@
 # laratesto-rector
 
 [Rector](https://getrector.com/) rules for migrating Laravel PHPUnit test suites
- to [Laratesto](https://github.com/ichinya/laratesto) (Testo-based).
+to [Laratesto](https://github.com/ichinya/laratesto) (Testo-based).
 
 This is the standalone source repository for **`ichinya/laratesto-rector`**.
 Rules, the migration command, issues and pull requests are maintained here.
