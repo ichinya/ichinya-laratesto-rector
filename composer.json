@@ -1,0 +1,71 @@
+{
+    "name": "ichinya/laratesto-rector",
+    "description": "Rector rules to migrate Laravel PHPUnit test suites to Laratesto.",
+    "license": "BSD-3-Clause",
+    "type": "library",
+    "homepage": "https://github.com/ichinya/ichinya-laratesto-rector",
+    "support": {
+        "issues": "https://github.com/ichinya/ichinya-laratesto-rector/issues",
+        "source": "https://github.com/ichinya/ichinya-laratesto-rector"
+    },
+    "keywords": [
+        "testo",
+        "laravel",
+        "phpunit",
+        "migration",
+        "rector"
+    ],
+    "authors": [
+        {
+            "name": "Ichi",
+            "homepage": "https://github.com/ichinya"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "composer-runtime-api": "^2.1",
+        "rector/rector": "2.6.2",
+        "testo/bridge-rector": "^0.2.4"
+    },
+    "conflict": {
+        "ichinya/laratesto": "<=0.7.0"
+    },
+    "suggest": {
+        "ichinya/laratesto": "Install the matching runtime checkout (or a release after 0.7.0) with PhpUnitCompatibility and multi-connection database attributes. See README.md for consumer installation."
+    },
+    "autoload": {
+        "psr-4": {
+            "Laratesto\\Rector\\": "src/"
+        }
+    },
+    "require-dev": {
+        "ichinya/laratesto": "dev-main"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/ichinya/laratesto"
+        }
+    ],
+    "autoload-dev": {
+        "psr-4": {
+            "Laratesto\\Rector\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "testo run --suite=Rector"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Laratesto\\Rector\\LaratestoRectorServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
