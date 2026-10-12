@@ -3,10 +3,10 @@
     "description": "Rector rules to migrate Laravel PHPUnit test suites to Laratesto.",
     "license": "BSD-3-Clause",
     "type": "library",
-    "homepage": "https://github.com/ichinya/ichinya-laratesto-rector",
+    "homepage": "https://github.com/ichinya/laratesto-rector",
     "support": {
-        "issues": "https://github.com/ichinya/ichinya-laratesto-rector/issues",
-        "source": "https://github.com/ichinya/ichinya-laratesto-rector"
+        "issues": "https://github.com/ichinya/laratesto-rector/issues",
+        "source": "https://github.com/ichinya/laratesto-rector"
     },
     "keywords": [
         "testo",

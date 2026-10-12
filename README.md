@@ -12,7 +12,7 @@ The Laratesto runtime has its own repository and release cycle.
 Until this repository is registered on Packagist:
 
 ```bash
-composer config repositories.laratesto-rector vcs https://github.com/ichinya/ichinya-laratesto-rector
+composer config repositories.laratesto-rector vcs https://github.com/ichinya/laratesto-rector
 composer config repositories.laratesto vcs https://github.com/ichinya/laratesto
 composer require --dev ichinya/laratesto:dev-main ichinya/laratesto-rector:dev-main --with-all-dependencies
 php artisan package:discover
