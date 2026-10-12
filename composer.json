@@ -24,8 +24,8 @@
     "require": {
         "php": ">=8.2",
         "composer-runtime-api": "^2.1",
-        "rector/rector": "2.6.2",
-        "testo/bridge-rector": "^0.2.4"
+        "rector/rector": "2.7.0",
+        "testo/bridge-rector": "^0.3.3"
     },
     "conflict": {
         "ichinya/laratesto": "<=0.7.0"

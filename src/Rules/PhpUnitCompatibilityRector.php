@@ -19,7 +19,7 @@ use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
-/** Fills source-compatible assertion gaps in testo/bridge-rector 0.2.4. */
+/** Preserves source semantics that upstream typed assertion chains cannot retain. */
 final class PhpUnitCompatibilityRector extends AbstractRector
 {
     private const METHODS = [
@@ -81,7 +81,7 @@ final class PhpUnitCompatibilityRector extends AbstractRector
     public static function supportsCall(string $method, array $arguments): bool
     {
         $method = \strtolower($method);
-        if (!\in_array($method, \array_map('strtolower', self::METHODS), true)) {
+        if (!self::supportsMethod($method)) {
             return false;
         }
         foreach ($arguments as $argument) {
@@ -109,6 +109,11 @@ final class PhpUnitCompatibilityRector extends AbstractRector
             return false;
         }
         return true;
+    }
+
+    public static function supportsMethod(string $method): bool
+    {
+        return \in_array(\strtolower($method), \array_map('strtolower', self::METHODS), true);
     }
 
     private function sourceReceiver(MethodCall|StaticCall $node): bool
