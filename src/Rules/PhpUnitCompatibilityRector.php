@@ -18,10 +18,17 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Testo\Bridge\Rector\PhpunitToTesto\TypedAssertCallToTestoRector;
+use Testo\Bridge\Rector\PhpunitToTesto\AssertCallToTestoRector;
 
 /** Preserves source semantics that upstream typed assertion chains cannot retain. */
 final class PhpUnitCompatibilityRector extends AbstractRector
 {
+    public function __construct(
+        private readonly TypedAssertCallToTestoRector $upstream,
+        private readonly AssertCallToTestoRector $flatUpstream,
+    ) {}
+
     private const METHODS = [
         'assertStringContainsString', 'assertStringNotContainsString',
         'assertEmpty', 'assertNotEmpty', 'assertIsArray', 'assertNotContains',
@@ -47,34 +54,60 @@ final class PhpUnitCompatibilityRector extends AbstractRector
 
     public function refactor(Node $node): ?Node
     {
-        if (!$node->name instanceof Identifier || !$this->sourceReceiver($node)) {
+        if (!$this->accepts($node)) {
             return null;
         }
-        $scope = $node->getAttribute(AttributeKey::SCOPE);
-        if (!$scope instanceof Scope || !$scope->isInClass()) {
-            return null;
+        if ($this->canDelegate($node)) {
+            $converted = strtolower($node->name->toString()) === 'assertnotfalse'
+                ? $this->flatUpstream->refactor($node)
+                : $this->upstream->refactor($node);
+            if ($converted !== null) {
+                return $converted;
+            }
         }
-        $method = $node->name->toString();
-        if (!self::supportsCall($method, $node->args)) {
-            return null;
-        }
-        $class = $scope->getClassReflection();
-        if (strtolower($method) === 'createstub' && !$class->hasNativeMethod($method)) {
-            // An unrelated class may provide createStub() through __call().
-            // Only PHPUnit's actual factory has the semantics we preserve.
-            return null;
-        }
-        if ($class->hasNativeMethod($method)
-            && !\str_starts_with($class->getNativeMethod($method)->getDeclaringClass()->getName(), 'PHPUnit\\Framework\\')) {
-            return null;
-        }
-        if (strtolower($method) === 'createstub') {
+        if (strtolower($node->name->toString()) === 'createstub') {
             if ($node->args[0]->name !== null) {
                 $node->args[0]->name = new Identifier('originalClassName');
             }
             $node->args[] = new Arg(new Node\Expr\ClassConstFetch(new Name('static'), 'class'), name: new Identifier('testClass'));
         }
         return new StaticCall(new FullyQualified('Laratesto\Testing\PhpUnitCompatibility'), $node->name, $node->args);
+    }
+
+    /** Shared receiver/signature proof for local and delegated conversions. */
+    private function accepts(Node $node): bool
+    {
+        if (!$node instanceof MethodCall && !$node instanceof StaticCall) {
+            return false;
+        }
+        if (!$node->name instanceof Identifier || !$this->sourceReceiver($node)) {
+            return false;
+        }
+        $scope = $node->getAttribute(AttributeKey::SCOPE);
+        if (!$scope instanceof Scope || !$scope->isInClass()) {
+            return false;
+        }
+        $method = $node->name->toString();
+        if (!self::supportsCall($method, $node->args)) {
+            return false;
+        }
+        $class = $scope->getClassReflection();
+        if (strtolower($method) === 'createstub' && !$class->hasNativeMethod($method)) {
+            // An unrelated class may provide createStub() through __call().
+            // Only PHPUnit's actual factory has the semantics we preserve.
+            return false;
+        }
+        if ($class->hasNativeMethod($method)
+            && !\str_starts_with($class->getNativeMethod($method)->getDeclaringClass()->getName(), 'PHPUnit\\Framework\\')) {
+            return false;
+        }
+        if (!$class->hasNativeMethod($method)
+            && !str_starts_with($class->getName(), 'PHPUnit\\Framework\\')
+            && !$class->isSubclassOf('PHPUnit\\Framework\\TestCase')) {
+            // An unrelated __call() cannot prove PHPUnit assertion ownership.
+            return false;
+        }
+        return true;
     }
 
     /** @param array<Arg|Node\VariadicPlaceholder> $arguments */
@@ -121,5 +154,34 @@ final class PhpUnitCompatibilityRector extends AbstractRector
         return $node instanceof MethodCall
             ? $node->var instanceof Variable && $node->var->name === 'this'
             : $node->class instanceof Name && \in_array(\strtolower($node->class->toString()), ['self', 'static'], true);
+    }
+
+    private function canDelegate(MethodCall|StaticCall $call): bool
+    {
+        // Upstream preserves positional type predicates and filesystem checks.
+        // Named/unpacked calls and unproven string coercion keep the helper.
+        if (count($call->args) < 1 || count($call->args) > 2) {
+            return false;
+        }
+        foreach ($call->args as $arg) {
+            if (!$arg instanceof Node\Arg || $arg->name !== null || $arg->unpack) {
+                return false;
+            }
+        }
+        $scope = $call->getAttribute(AttributeKey::SCOPE);
+        if (!$scope instanceof Scope || (isset($call->args[1]) && !$scope->getType($call->args[1]->value)->isString()->yes())) {
+            return false;
+        }
+        $method = strtolower($call->name->toString());
+        if (in_array($method, ['assertisarray', 'assertisstring', 'assertisint', 'assertisbool', 'assertisobject', 'assertnotfalse'], true)) {
+            return true;
+        }
+        if (in_array($method, ['assertfileexists', 'assertfiledoesnotexist', 'assertdirectoryexists', 'assertdirectorydoesnotexist'], true)) {
+            return $scope->getType($call->args[0]->value)->isString()->yes();
+        }
+        if (in_array($method, ['assertempty', 'assertnotempty'], true)) {
+            return $scope->getType($call->args[0]->value)->isArray()->yes();
+        }
+        return false;
     }
 }
