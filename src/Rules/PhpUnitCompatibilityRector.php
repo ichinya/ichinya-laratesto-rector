@@ -19,11 +19,15 @@ use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use Testo\Bridge\Rector\PhpunitToTesto\TypedAssertCallToTestoRector;
+use Testo\Bridge\Rector\PhpunitToTesto\AssertCallToTestoRector;
 
 /** Preserves source semantics that upstream typed assertion chains cannot retain. */
 final class PhpUnitCompatibilityRector extends AbstractRector
 {
-    public function __construct(private readonly TypedAssertCallToTestoRector $upstream) {}
+    public function __construct(
+        private readonly TypedAssertCallToTestoRector $upstream,
+        private readonly AssertCallToTestoRector $flatUpstream,
+    ) {}
 
     private const METHODS = [
         'assertStringContainsString', 'assertStringNotContainsString',
@@ -54,7 +58,9 @@ final class PhpUnitCompatibilityRector extends AbstractRector
             return null;
         }
         if ($this->canDelegate($node)) {
-            $converted = $this->upstream->refactor($node);
+            $converted = strtolower($node->name->toString()) === 'assertnotfalse'
+                ? $this->flatUpstream->refactor($node)
+                : $this->upstream->refactor($node);
             if ($converted !== null) {
                 return $converted;
             }
@@ -167,7 +173,7 @@ final class PhpUnitCompatibilityRector extends AbstractRector
             return false;
         }
         $method = strtolower($call->name->toString());
-        if (in_array($method, ['assertisarray', 'assertisstring', 'assertisint', 'assertisbool', 'assertisobject'], true)) {
+        if (in_array($method, ['assertisarray', 'assertisstring', 'assertisint', 'assertisbool', 'assertisobject', 'assertnotfalse'], true)) {
             return true;
         }
         if (in_array($method, ['assertfileexists', 'assertfiledoesnotexist', 'assertdirectoryexists', 'assertdirectorydoesnotexist'], true)) {

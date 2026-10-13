@@ -19,6 +19,7 @@ final class UpstreamCompositionTest
             ['IsArray', '[]', '1'], ['IsString', "'value'", '1'],
             ['IsInt', '1', "'value'"], ['IsBool', 'true', '1'],
             ['IsObject', 'new \\stdClass()', '[]'],
+            ['NotFalse', '0', 'false'],
             ['Empty', '[]', '[1]'], ['NotEmpty', '[1]', '[]'],
             ['FileExists', '__DIR__', "__DIR__ . '/missing'"],
             ['FileDoesNotExist', "__DIR__ . '/missing'", '__DIR__'],
@@ -43,9 +44,9 @@ final class UpstreamCompositionTest
             private static function values(array $value): array { file_put_contents(__DIR__ . '/evaluations', "call\n", FILE_APPEND); return $value; }
             }
             PHP;
-        $files = $this->migrate(['Tests.php' => $source], expectedTotals: ['total' => 23, 'assertions' => 23, 'passed' => 12, 'failed' => 11]);
+        $files = $this->migrate(['Tests.php' => $source], expectedTotals: ['total' => 25, 'assertions' => 25, 'passed' => 13, 'failed' => 12]);
         Assert::string($files['Tests.php'])->notContains('Laratesto\\Testing\\PhpUnitCompatibility');
-        foreach (['\\file_exists(', '\\is_dir(', '\\Testo\\Assert::true(', '\\Testo\\Assert::array(', '\\Testo\\Assert::blank('] as $delegated) {
+        foreach (['\\file_exists(', '\\is_dir(', '\\Testo\\Assert::true(', '\\Testo\\Assert::array(', '\\Testo\\Assert::blank(', '\\Testo\\Assert::notSame('] as $delegated) {
             Assert::string($files['Tests.php'])->contains($delegated);
         }
     }
@@ -213,7 +214,7 @@ final class UpstreamCompositionTest
                 foreach ($report['failures'] as $failure) {
                     Assert::string($failure['test'])->contains('::testNegative');
                 }
-                Assert::same(23, count(file($tmp . '/corpus/evaluations')), 'Every subject must be evaluated exactly once.');
+                Assert::same($expectedTotals['total'], count(file($tmp . '/corpus/evaluations')), 'Every subject must be evaluated exactly once.');
             }
             return $converted;
         } finally {

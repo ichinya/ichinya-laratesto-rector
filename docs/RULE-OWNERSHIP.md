@@ -46,7 +46,7 @@ first-class callable/unpacked boundaries and source argument evaluation.
 | `assertStringContainsString`, `assertStringNotContainsString`, `assertStringStartsWith` | Typed string matchers | Keep caller-dependent coercion, named parameter names and original argument evaluation order. A passing literal-string example alone does not prove arbitrary call equivalence. |
 | `assertMatchesRegularExpression`, `assertDoesNotMatchRegularExpression` | Regex matchers | Retain source string coercion and invalid-PCRE outcome until valid/invalid patterns, messages, named arguments and evaluation order are proven equivalent. |
 | `assertNotContains` | Strict iterable membership | Keep needle/haystack argument order, iterable consumption, named parameters and message coercion until proven equivalent for those shapes. |
-| `assertNotFalse` | `AssertCallToTestoRector` → `notSame(..., false)` | Upstream's flat lane already supplies the ordinary conversion; the runtime helper remains available for guarded fallback and existing generated code. |
+| `assertNotFalse` | `AssertCallToTestoRector` → `notSame(..., false)` | Delegate guarded positional calls directly to upstream's flat rule. Named/unsupported calls and previously generated code retain the runtime helper. |
 | `addToAssertionCount` | No generic equivalent | Keep bounded literal increments 0..1000. Negative/dynamic increments require manual migration. |
 | `createStub` | Separate mocking-framework migration sets | Preserve the PHPUnit shim factory, disabled automatic return generation and source test-class metadata. Choosing another mocking framework is not an equivalent automatic conversion. |
 | `PhpUnitCompatibility`, `src/Shim/PhpUnit` | No migrator can replace runtime | Retain for Laravel/package/deferred assertions, older generated code and the supported legacy converter. Reusing upstream transformations does not remove the runtime API. |
@@ -54,8 +54,8 @@ first-class callable/unpacked boundaries and source argument evaluation.
 ## Evidence and removal gate
 
 - `tests/Configuration/UpstreamCompositionTest.php` runs real public-set CLI
-  conversion and a fresh-cache second pass. Positional predicates execute 23
-  tests with exactly 23 assertions: 12 expected passes and 11 expected failures.
+  conversion and a fresh-cache second pass. Positional predicates execute 25
+  tests with exactly 25 assertions: 13 expected passes and 12 expected failures.
   Every subject is evaluated once. Named/coercion/custom-receiver controls
   retain their guarded source semantics.
 - Runtime `FilesystemAssertionParityTest` executes named and positional helpers
