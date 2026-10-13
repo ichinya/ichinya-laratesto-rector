@@ -9,21 +9,18 @@ The Laratesto runtime has its own repository and release cycle.
 
 ## Install
 
-Until this repository is registered on Packagist:
+Install the released runtime and migrator from Packagist:
 
 ```bash
-composer config repositories.laratesto-rector vcs https://github.com/ichinya/laratesto-rector
-composer config repositories.laratesto vcs https://github.com/ichinya/laratesto
-composer require --dev ichinya/laratesto:dev-main ichinya/laratesto-rector:dev-main --with-all-dependencies
+composer require --dev ichinya/laratesto:^0.8.0 ichinya/laratesto-rector:^0.2.0
 php artisan package:discover
 php artisan laratesto:migrate-rector --help
 ```
 
-After Packagist registration, the first `composer config` command is unnecessary.
-Use the runtime's `dev-main` until a release containing
-`Laratesto\Testing\PhpUnitCompatibility` and multi-connection database attributes
-is available. Runtime 0.7.0 or earlier is incompatible; the development branch
-is not a stable migration package release.
+No custom Composer repository is required. Runtime 0.8.0 includes
+`Laratesto\Testing\PhpUnitCompatibility` and the multi-connection database
+attributes used by generated code. Runtime and migrator have independent tags.
+Use the documented release pair instead of a development branch alias.
 
 The package installs `rector/rector` and `testo/bridge-rector` as dependencies.
 Laravel package discovery registers the command. If discovery is disabled,
@@ -34,6 +31,8 @@ Composer 2.1 or newer is required for installation path discovery.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Package tags use ordinary `X.Y.Z` versions;
 there is no split workflow. The BSD-3-Clause license is included in [LICENSE](LICENSE).
+See [rule ownership](docs/RULE-OWNERSHIP.md) for upstream reuse, compatibility
+guards and the evidence required before removing a local override.
 
 ## Usage
 
@@ -236,7 +235,7 @@ input paths. When upgrading Rector, verify positional CLI overrides, parallel
 workers, and skipped or autoload-only bases as well as configured-path runs.
 
 The Laratesto runtime these rules migrate to supports PHP `>=8.3`,
-Laravel `^13.0` and Testo `^0.10.42`. This package declares no Composer
+Laravel `^13.0` and Testo `^0.10.55`. This package declares no Composer
 dependency on the runtime and only suggests it. CI tests the locked Laravel 13
 dependencies on a self-hosted runner with PHP 8.3 through 8.5, plus pre-GA
 PHP 8.6 legs as non-gating signal, asserting the actual installed framework
@@ -245,9 +244,10 @@ major before running the suite.
 The rules rewrite database traits into the multi-connection attributes
 (`connections`, `tables`, `exceptTables` on
 `#[DatabaseTruncation]`; `connections` on `#[RefreshDatabase]`), which the released
-runtime `0.6.9` does not ship. The matching checkout also supplies the PHPUnit compatibility helpers introduced after runtime `0.7.0`. Install the matching `ichinya/laratesto` development checkout — or the first
-release that includes those attributes — before running migrated tests; against
-`0.6.9` the generated code cannot run.
+runtime `0.6.9` does not ship. Runtime `^0.8.0` supplies these attributes and the
+PHPUnit compatibility helpers introduced after runtime `0.7.0`. Development
+checkouts such as `dev-main` are only needed when testing unreleased changes;
+against `0.6.9` the generated code cannot run.
 
 Own and inherited Laravel `Seed`/`Seeder` attributes lift only with a positively
 identified installed Laravel 13 framework: inherited `Seed` enables seeding before

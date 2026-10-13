@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Delegate proven positional type/filesystem checks and array emptiness to
+  upstream while retaining named-argument, custom-receiver and coercion guards.
+- Document rule ownership and install the stable runtime/migrator pair from
+  Packagist without custom repositories.
+
+## 0.2.0 - 2026-10-13
+
 - Support Rector 2.7.0 and testo/bridge-rector 0.3.3.
 - Keep Laravel structural conversion separate from upstream generic discovery
   and lifecycle rewrites, preserving user skips and unsafe-hierarchy boundaries.

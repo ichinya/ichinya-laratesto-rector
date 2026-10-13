@@ -39,14 +39,8 @@
         }
     },
     "require-dev": {
-        "ichinya/laratesto": "dev-main"
+        "ichinya/laratesto": "^0.8.0"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/ichinya/laratesto"
-        }
-    ],
     "autoload-dev": {
         "psr-4": {
             "Laratesto\\Rector\\Tests\\": "tests/"

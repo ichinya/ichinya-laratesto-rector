@@ -13,6 +13,68 @@ use Testo\Test;
 final class UpstreamCompositionTest
 {
     #[Test]
+    public function provenPositionalPredicatesReuseUpstreamWithRuntimeControls(): void
+    {
+        $cases = [
+            ['IsArray', '[]', '1'], ['IsString', "'value'", '1'],
+            ['IsInt', '1', "'value'"], ['IsBool', 'true', '1'],
+            ['IsObject', 'new \\stdClass()', '[]'],
+            ['Empty', '[]', '[1]'], ['NotEmpty', '[1]', '[]'],
+            ['FileExists', '__DIR__', "__DIR__ . '/missing'"],
+            ['FileDoesNotExist', "__DIR__ . '/missing'", '__DIR__'],
+            ['DirectoryExists', '__DIR__', '__FILE__'],
+            ['DirectoryDoesNotExist', "__DIR__ . '/missing'", '__DIR__'],
+        ];
+        $methods = [];
+        foreach ($cases as [$name, $good, $bad]) {
+            // Typed path suppliers prove the string boundary and every supplier
+            // records evaluation, including assertions whose verdict must fail.
+            $supplier = str_contains($name, 'File') || str_contains($name, 'Directory') ? 'path' : 'value';
+            if (in_array($name, ['Empty', 'NotEmpty'], true)) {
+                $supplier = 'values';
+            }
+            $methods[] = 'public function testPositive' . $name . '(): void { $this->assert' . $name . '(self::' . $supplier . '(' . $good . '), "message retained"); }';
+            $methods[] = 'public function testNegative' . $name . '(): void { $this->assert' . $name . '(self::' . $supplier . '(' . $bad . ')); }';
+        }
+        $methods[] = 'public function testPositiveFileKind(): void { $this->assertFileExists(self::path(__FILE__)); }';
+        $source = '<?php final class PredicateProbe extends \\PHPUnit\\Framework\\TestCase {' . implode("\n", $methods) . <<<'PHP'
+            private static function value(mixed $value): mixed { file_put_contents(__DIR__ . '/evaluations', "call\n", FILE_APPEND); return $value; }
+            private static function path(string $value): string { file_put_contents(__DIR__ . '/evaluations', "call\n", FILE_APPEND); return $value; }
+            private static function values(array $value): array { file_put_contents(__DIR__ . '/evaluations', "call\n", FILE_APPEND); return $value; }
+            }
+            PHP;
+        $files = $this->migrate(['Tests.php' => $source], expectedTotals: ['total' => 23, 'assertions' => 23, 'passed' => 12, 'failed' => 11]);
+        Assert::string($files['Tests.php'])->notContains('Laratesto\\Testing\\PhpUnitCompatibility');
+        foreach (['\\file_exists(', '\\is_dir(', '\\Testo\\Assert::true(', '\\Testo\\Assert::array(', '\\Testo\\Assert::blank('] as $delegated) {
+            Assert::string($files['Tests.php'])->contains($delegated);
+        }
+    }
+
+    #[Test]
+    public function namedAndUnprovenCallsKeepTheCompatibilityGuard(): void
+    {
+        $files = $this->migrate(['Tests.php' => <<<'PHP'
+            <?php
+            final class BoundaryProbe extends \PHPUnit\Framework\TestCase {
+                public function testNamed(): void { $this->assertIsString(actual: 'x', message: 'named'); }
+                public function testCoercion(): void { $this->assertFileExists(123); }
+            }
+            final class CustomPredicate {
+                public function assertIsInt($actual): string { return 'custom'; }
+                public function run(): string { return $this->assertIsInt('x'); }
+            }
+            final class MagicPredicate {
+                public function __call($name, $arguments): string { return 'magic'; }
+                public function run(): string { return $this->assertIsBool(1); }
+            }
+            PHP]);
+        Assert::string($files['Tests.php'])->contains('PhpUnitCompatibility::assertIsString(actual:');
+        Assert::string($files['Tests.php'])->contains('PhpUnitCompatibility::assertFileExists(123)');
+        Assert::string($files['Tests.php'])->contains("return $" . "this->assertIsInt('x')");
+        Assert::string($files['Tests.php'])->contains('return $this->assertIsBool(1)');
+    }
+
+    #[Test]
     public function laravelAndGenericDiscoveryKeepTheirSeparateBoundaries(): void
     {
         $files = $this->migrate([
@@ -101,7 +163,7 @@ final class UpstreamCompositionTest
     }
 
     /** @param array<string, string> $files @return array<string, string> */
-    private function migrate(array $files, ?string $vendorBase = null): array
+    private function migrate(array $files, ?string $vendorBase = null, ?array $expectedTotals = null): array
     {
         $root = dirname(__DIR__, 2);
         $tmp = sys_get_temp_dir() . '/laratesto-upstream-' . bin2hex(random_bytes(8));
@@ -140,6 +202,18 @@ final class UpstreamCompositionTest
             $run();
             foreach ($converted as $file => $source) {
                 Assert::same($source, file_get_contents($tmp . '/corpus/' . $file), 'A fresh-cache second run must preserve bytes.');
+            }
+            if ($expectedTotals !== null) {
+                file_put_contents($tmp . '/testo.php', '<?php return new \\Testo\\Application\\Config\\ApplicationConfig(suites: [new \\Testo\\Application\\Config\\SuiteConfig(name: "Predicates", location: ' . $paths . ')]);');
+                $testo = new Process([PHP_BINARY, $root . '/vendor/bin/testo', 'run', '--config', $tmp . '/testo.php', '--log-json=' . $tmp . '/result.json', '--no-ansi'], $root, timeout: 120);
+                $testo->run();
+                Assert::same(1, $testo->getExitCode(), $testo->getOutput() . $testo->getErrorOutput());
+                $report = json_decode(file_get_contents($tmp . '/result.json'), true, flags: JSON_THROW_ON_ERROR);
+                Assert::same($expectedTotals, $report['totals']);
+                foreach ($report['failures'] as $failure) {
+                    Assert::string($failure['test'])->contains('::testNegative');
+                }
+                Assert::same(23, count(file($tmp . '/corpus/evaluations')), 'Every subject must be evaluated exactly once.');
             }
             return $converted;
         } finally {
