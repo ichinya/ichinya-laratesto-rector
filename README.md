@@ -211,11 +211,24 @@ Laravel constructs classified as unsupported are preserved with
 ## Compatibility baseline
 
 This package requires PHP `>=8.2` — the same minimum as Testo. It
-intentionally pins Rector to `2.6.2` and supports `testo/bridge-rector` `0.2.4`.
-Bridge `0.2.4` still uses Rector's former `Container::tagged()` integration, which
-is absent from newer Rector versions tested for this release. Remove or widen the
-pin only after the public-set, configured-rule, and double-run corpus tests pass
-against the candidate Rector version.
+intentionally pins Rector to `2.7.0` and supports `testo/bridge-rector` `0.3.3`.
+The fixture harness uses Rector's `findByContract()` container API, supports
+imported sets and reports Rector system errors before comparing fixture output.
+Remove or widen the pin only after the public-set, configured-rule, and
+double-run corpus tests pass against the candidate Rector version.
+
+The public set retains upstream generic discovery and lifecycle conversion
+through `PhpUnitDiscoveryRector` and `PhpUnitLifecycleRector`. Laravel classes,
+including classes outside an overridden `base_classes` list, remain under the
+atomic Laravel conversion gate; upstream cannot add a vendor-base skip to a
+successfully migrated Laravel class. Existing user skips and protection for
+unconverted generic vendor bases are preserved.
+
+`PhpUnitTypedAssertionsRector` keeps the source-compatible assertion lane ahead
+of upstream typed heads, preserving named arguments, string coercion and custom
+receivers. Exception expectations continue to use the compatibility rule. To
+skip an adapted lane, configure its `Laratesto\\Rector\\Rules\\` adapter class
+in the project's `withSkip()` configuration.
 
 Processing-scope checks also read the pinned Rector run configuration through
 `PrivatesAccessor`, because this version has no public getter for the effective

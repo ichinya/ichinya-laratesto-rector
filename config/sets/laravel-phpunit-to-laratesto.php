@@ -11,18 +11,32 @@ use Laratesto\Rector\Rules\LaravelSourceCompatibleCallsRector;
 use Laratesto\Rector\Rules\PhpUnitCompatibilityRector;
 use Laratesto\Rector\Rules\LaravelFacadeAssertionsRector;
 use Laratesto\Rector\Rules\PhpUnitExceptionExpectationRector;
+use Laratesto\Rector\Rules\PhpUnitDiscoveryRector;
+use Laratesto\Rector\Rules\PhpUnitLifecycleRector;
+use Laratesto\Rector\Rules\PhpUnitTypedAssertionsRector;
 use Rector\Config\RectorConfig;
 use Testo\Bridge\Rector\Set\TestoRectorSetList;
 use Testo\Bridge\Rector\PhpunitToTesto\ExpectExceptionToTestoRector;
+use Testo\Bridge\Rector\PhpunitToTesto\ExtendsTestCaseToTestoRector;
+use Testo\Bridge\Rector\PhpunitToTesto\LifecycleMethodToTestoRector;
+use Testo\Bridge\Rector\PhpunitToTesto\TypedAssertCallToTestoRector;
 
 return static function (RectorConfig $rectorConfig): void {
     // Make the PHPUnit compatibility shim and Laravel's test traits discoverable
     // to Rector's source locator even when phpunit/phpunit is not installed.
     $rectorConfig->autoloadPaths(AutoloadPaths::forPackage());
 
-    // Generic PHPUnit -> Testo part (upstream), applied BEFORE Laravel-specific rules.
+    // Reuse the generic set, replacing only lanes with Laravel/source semantics.
     $rectorConfig->import(TestoRectorSetList::PHPUNIT_TO_TESTO);
-    $rectorConfig->skip([ExpectExceptionToTestoRector::class]);
+    $rectorConfig->skip([
+        ExpectExceptionToTestoRector::class,
+        ExtendsTestCaseToTestoRector::class,
+        LifecycleMethodToTestoRector::class,
+        TypedAssertCallToTestoRector::class,
+    ]);
+    $rectorConfig->rule(PhpUnitDiscoveryRector::class);
+    $rectorConfig->rule(PhpUnitLifecycleRector::class);
+    $rectorConfig->rule(PhpUnitTypedAssertionsRector::class);
     $rectorConfig->rule(PhpUnitExceptionExpectationRector::class);
     $rectorConfig->rule(PhpUnitCompatibilityRector::class);
     $rectorConfig->rule(LaravelFacadeAssertionsRector::class);
