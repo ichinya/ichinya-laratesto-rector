@@ -63,16 +63,21 @@ final class UpstreamCompositionTest
             final class CustomPredicate {
                 public function assertIsInt($actual): string { return 'custom'; }
                 public function run(): string { return $this->assertIsInt('x'); }
+                public function assertNotFalse($actual): string { return 'custom'; }
+                public function flat(): string { return $this->assertNotFalse(false); }
             }
             final class MagicPredicate {
                 public function __call($name, $arguments): string { return 'magic'; }
                 public function run(): string { return $this->assertIsBool(1); }
+                public function flat(): string { return $this->assertNotFalse(0); }
             }
             PHP]);
         Assert::string($files['Tests.php'])->contains('PhpUnitCompatibility::assertIsString(actual:');
         Assert::string($files['Tests.php'])->contains('PhpUnitCompatibility::assertFileExists(123)');
         Assert::string($files['Tests.php'])->contains("return $" . "this->assertIsInt('x')");
         Assert::string($files['Tests.php'])->contains('return $this->assertIsBool(1)');
+        Assert::string($files['Tests.php'])->contains('return $this->assertNotFalse(false)');
+        Assert::string($files['Tests.php'])->contains('return $this->assertNotFalse(0)');
     }
 
     #[Test]

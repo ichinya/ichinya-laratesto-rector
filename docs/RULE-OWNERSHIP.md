@@ -18,6 +18,7 @@ Install it from Packagist without custom repositories or phpunit/phpunit.
 | `LaravelBaseClassRector` | `ExtendsTestCaseToTestoRector`, `LifecycleMethodToTestoRector` | Laravel parent/bootstrap/hierarchy conversion is atomic. Unsafe descendants preserve their shared source base and receive residuals. |
 | `PhpUnitDiscoveryRector` | `ExtendsTestCaseToTestoRector` | Delegate generic classes. Laravel classes stay under the local conversion gate; preserve user skips and upstream protection for unconverted vendor bases. Shared trait discovery requires manual migration. |
 | `PhpUnitLifecycleRector` | `LifecycleMethodToTestoRector` | Delegate generic lifecycle; preserve Laravel lifecycle/bootstrap provenance and unsafe boundaries. |
+| `PhpUnitFlatAssertionsRector` | `AssertCallToTestoRector` | Delegate generic flat assertions while applying the compatibility receiver/signature guard to overlapping methods, including custom/magic `assertNotFalse`. |
 | `LaravelDatabaseTraitsRector` | None | Laravel strategies, literal options, inherited configuration and database safety remain local. |
 | `LaravelSourceCompatibleCallsRector` | None for Laravel HTTP/Artisan/mail APIs | Preserve source receiver/signature and lifetime semantics. |
 | `LaravelFacadeAssertionsRector` | Generic assertions cannot execute Laravel fake assertions | Local runtime bridge preserves framework/package assertion outcomes and counting. |
@@ -26,7 +27,7 @@ Install it from Packagist without custom repositories or phpunit/phpunit.
 
 The public set imports `PHPUNIT_TO_TESTO`. Data providers, group/coverage
 metadata, supported flat assertions and other generic transformations continue
-to come from upstream. It replaces only discovery, lifecycle, typed assertions
+to come from upstream. It replaces only discovery, lifecycle, flat/typed assertions
 and exception expectation lanes requiring the boundaries above.
 
 ## Assertions and runtime helpers

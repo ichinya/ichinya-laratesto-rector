@@ -229,6 +229,11 @@ receivers. Exception expectations continue to use the compatibility rule. To
 skip an adapted lane, configure its `Laratesto\\Rector\\Rules\\` adapter class
 in the project's `withSkip()` configuration.
 
+`PhpUnitFlatAssertionsRector` applies the same guard to overlapping flat calls,
+including `assertNotFalse`. Proven positional calls delegate to upstream. The
+shared `PhpUnitCompatibilityRector` can also perform these conversions; to
+disable its method families, skip that rule and both assertion adapters.
+
 Processing-scope checks also read the pinned Rector run configuration through
 `PrivatesAccessor`, because this version has no public getter for the effective
 input paths. When upgrading Rector, verify positional CLI overrides, parallel

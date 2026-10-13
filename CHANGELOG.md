@@ -4,6 +4,8 @@
 
 - Delegate proven positional type/filesystem checks and array emptiness to
   upstream while retaining named-argument, custom-receiver and coercion guards.
+- Guard the overlapping flat assertion lane, including custom and magic
+  `assertNotFalse` methods, before delegating the proven PHPUnit form upstream.
 - Document rule ownership and install the stable runtime/migrator pair from
   Packagist without custom repositories.
 

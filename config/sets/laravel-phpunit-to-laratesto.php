@@ -14,12 +14,14 @@ use Laratesto\Rector\Rules\PhpUnitExceptionExpectationRector;
 use Laratesto\Rector\Rules\PhpUnitDiscoveryRector;
 use Laratesto\Rector\Rules\PhpUnitLifecycleRector;
 use Laratesto\Rector\Rules\PhpUnitTypedAssertionsRector;
+use Laratesto\Rector\Rules\PhpUnitFlatAssertionsRector;
 use Rector\Config\RectorConfig;
 use Testo\Bridge\Rector\Set\TestoRectorSetList;
 use Testo\Bridge\Rector\PhpunitToTesto\ExpectExceptionToTestoRector;
 use Testo\Bridge\Rector\PhpunitToTesto\ExtendsTestCaseToTestoRector;
 use Testo\Bridge\Rector\PhpunitToTesto\LifecycleMethodToTestoRector;
 use Testo\Bridge\Rector\PhpunitToTesto\TypedAssertCallToTestoRector;
+use Testo\Bridge\Rector\PhpunitToTesto\AssertCallToTestoRector;
 
 return static function (RectorConfig $rectorConfig): void {
     // Make the PHPUnit compatibility shim and Laravel's test traits discoverable
@@ -33,10 +35,12 @@ return static function (RectorConfig $rectorConfig): void {
         ExtendsTestCaseToTestoRector::class,
         LifecycleMethodToTestoRector::class,
         TypedAssertCallToTestoRector::class,
+        AssertCallToTestoRector::class,
     ]);
     $rectorConfig->rule(PhpUnitDiscoveryRector::class);
     $rectorConfig->rule(PhpUnitLifecycleRector::class);
     $rectorConfig->rule(PhpUnitTypedAssertionsRector::class);
+    $rectorConfig->rule(PhpUnitFlatAssertionsRector::class);
     $rectorConfig->rule(PhpUnitExceptionExpectationRector::class);
     $rectorConfig->rule(PhpUnitCompatibilityRector::class);
     $rectorConfig->rule(LaravelFacadeAssertionsRector::class);
