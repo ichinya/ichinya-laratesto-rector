@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.2 - 2026-10-15
+
 - Document the released runtime 0.8.2 / migrator 0.2.1 pair and remove obsolete
   development-branch installation instructions.
 
