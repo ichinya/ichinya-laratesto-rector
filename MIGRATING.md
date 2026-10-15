@@ -10,12 +10,15 @@ with.
   (`git status --untracked-files=all --ignored -- <paths>`): Artisan `--apply`
   refuses staged/unstaged changes there, plus untracked or ignored PHP files.
   Untracked/ignored non-PHP files and files outside the scope do not block it.
-- `testo/testo`, `ichinya/laratesto` and `ichinya/laratesto-rector` installed. The
-  `ichinya/laratesto` runtime must ship the multi-connection database attributes
+- `testo/testo`, `ichinya/laratesto:^0.8.2` and
+  `ichinya/laratesto-rector:^0.2.1` installed from Packagist using the
+  [Composer consumer installation](README.md#install). The released runtime
+  supplies `Laratesto\Testing\PhpUnitCompatibility` and the multi-connection
+  database attributes
   (`connections`/`tables`/`exceptTables` on `DatabaseTruncation` and
-  `RefreshDatabase`) — use `dev-main` until that release: the generated
-  attributes do not exist in the released runtime 0.6.9.
-- Use the [Composer consumer installation](README.md#install) with a matching runtime containing `Laratesto\Testing\PhpUnitCompatibility`; runtime 0.7.0 and earlier cannot run the new assertion output.
+  `RefreshDatabase`) used by generated code. No development branch or custom
+  Composer repository is required. Runtime 0.7.0 and earlier cannot run the new
+  assertion output.
 - The project's test classes autoloadable (a standard Laravel `Tests\` namespace is).
 - PHP 8.3+ and Laravel 13 for the current Laratesto runtime. The migration package itself declares PHP >=8.2.
 

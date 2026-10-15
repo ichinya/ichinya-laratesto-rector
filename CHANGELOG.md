@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Document the released runtime 0.8.2 / migrator 0.2.1 pair and remove obsolete
+  development-branch installation instructions.
+
+## 0.2.1 - 2026-10-13
+
 - Delegate proven positional type/filesystem checks and array emptiness to
   upstream while retaining named-argument, custom-receiver and coercion guards.
 - Guard the overlapping flat assertion lane, including custom and magic

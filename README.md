@@ -12,12 +12,12 @@ The Laratesto runtime has its own repository and release cycle.
 Install the released runtime and migrator from Packagist:
 
 ```bash
-composer require --dev ichinya/laratesto:^0.8.0 ichinya/laratesto-rector:^0.2.0
+composer require --dev ichinya/laratesto:^0.8.2 ichinya/laratesto-rector:^0.2.1
 php artisan package:discover
 php artisan laratesto:migrate-rector --help
 ```
 
-No custom Composer repository is required. Runtime 0.8.0 includes
+No custom Composer repository is required. The released runtime includes
 `Laratesto\Testing\PhpUnitCompatibility` and the multi-connection database
 attributes used by generated code. Runtime and migrator have independent tags.
 Use the documented release pair instead of a development branch alias.
